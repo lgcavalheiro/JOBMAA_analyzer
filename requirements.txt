@@ -1,3 +1,0 @@
-nltk
-pylint
-autopep8
