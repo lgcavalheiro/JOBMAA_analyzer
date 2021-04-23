@@ -9,51 +9,6 @@ nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
 
-def assemble_analysis_object(entry, detected_topics):
-    temp_info = {
-        "company_name": entry["company_name"],
-        "source_id": entry["source_id"],
-        "job_title": entry["job_title"],
-        "hierarchy": entry["hierarchy"],
-        "wage": entry["wage"],
-        "location": entry["location"],
-        "detected_topics": detected_topics,
-        "job_benefits": entry["job_benefits"],
-        "analysis_timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-        "publish_date": entry["publish_date"],
-        "job_url": entry["job_url"],
-        "source_site": "VAGAS.COM",
-        "company_info": entry["company_info"],
-        "extraction_timestamp": entry["extraction_timestamp"]
-    }
-    return temp_info
-
-
-def process_entry(entry):
-    temp = entry['job_description'].upper()
-    """ temp = json.dumps(entry["job_description"],
-                      indent=4, ensure_ascii=False).upper() """
-    temp = pre_process(temp)
-    temp = filter_chunks(temp)
-    temp = str(stringify_chunks(temp))
-    temp = re.sub(r' \:\,\(\)\'\"\[\]\{\}\?\; ', ' ',  temp)
-    return temp
-
-
-def detect_topics(processed_entry):
-    detected_topics = []
-    for topic in topics:
-        if type(topic) is dict:
-            for subtopic in topic:
-                if subtopic in processed_entry:
-                    detected_topics.append(list(topic.keys())[0])
-        else:
-            if topic in processed_entry:
-                detected_topics.append(topic)
-    detected_topics = format_entry(detected_topics)
-    return detected_topics
-
-
 def analyze_job_requirements(parsed_data):
     analyzed_entries = []
     for entry in parsed_data:
@@ -65,28 +20,15 @@ def analyze_job_requirements(parsed_data):
     return analyzed_entries
 
 
-def format_entry(analyzed_entries):
-    if 'JAVA' in analyzed_entries:
-        ct = 0
-        for word in analyzed_entries:
-            if 'JAVA' in word:
-                ct += 1
-        if ct >= 2:
-            analyzed_entries.remove('JAVA')
-
-    analyzed_entries = set(analyzed_entries)
-
-    if 'SQL' in analyzed_entries and 'SQL SERVER' in analyzed_entries:
-        analyzed_entries.remove('SQL')
-
-    if ' R ' in analyzed_entries and 'R $' in analyzed_entries:
-        analyzed_entries.remove(' R ')
-        analyzed_entries.remove('R $')
-
-    if 'R $' in analyzed_entries:
-        analyzed_entries.remove('R $')
-
-    return list(analyzed_entries)
+def process_entry(entry):
+    temp = entry['job_description'].upper()
+    """ temp = json.dumps(entry["job_description"],
+                      indent=4, ensure_ascii=False).upper() """
+    temp = pre_process(temp)
+    temp = filter_chunks(temp)
+    temp = str(stringify_chunks(temp))
+    temp = re.sub(r' \:\,\(\)\'\"\[\]\{\}\?\; ', ' ',  temp)
+    return temp
 
 
 def pre_process(sent):
@@ -123,6 +65,64 @@ def stringify_chunks(data):
         finalstring.append(temp)
         temp = ''
     return finalstring
+
+
+def detect_topics(processed_entry):
+    detected_topics = []
+    for topic in topics:
+        if type(topic) is dict:
+            for subtopic in topic:
+                if subtopic in processed_entry:
+                    detected_topics.append(list(topic.keys())[0])
+        else:
+            if topic in processed_entry:
+                detected_topics.append(topic)
+    detected_topics = format_entry(detected_topics)
+    return detected_topics
+
+
+def format_entry(analyzed_entries):
+    if 'JAVA' in analyzed_entries:
+        ct = 0
+        for word in analyzed_entries:
+            if 'JAVA' in word:
+                ct += 1
+        if ct >= 2:
+            analyzed_entries.remove('JAVA')
+
+    analyzed_entries = set(analyzed_entries)
+
+    if 'SQL' in analyzed_entries and 'SQL SERVER' in analyzed_entries:
+        analyzed_entries.remove('SQL')
+
+    if ' R ' in analyzed_entries and 'R $' in analyzed_entries:
+        analyzed_entries.remove(' R ')
+        analyzed_entries.remove('R $')
+
+    if 'R $' in analyzed_entries:
+        analyzed_entries.remove('R $')
+
+    return list(analyzed_entries)
+
+
+def assemble_analysis_object(entry, detected_topics):
+    temp_info = {
+        "company_name": entry["company_name"],
+        "source_id": entry["source_id"],
+        "job_title": entry["job_title"],
+        "hierarchy": entry["hierarchy"],
+        "wage": entry["wage"],
+        "location": entry["location"],
+        "detected_topics": detected_topics,
+        "job_benefits": entry["job_benefits"],
+        "analysis_timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "publish_date": entry["publish_date"],
+        "job_url": entry["job_url"],
+        "source_site": "VAGAS.COM",
+        "company_info": entry["company_info"],
+        "extraction_timestamp": entry["extraction_timestamp"]
+    }
+    return temp_info
 
 
 if(__name__ == "__main__"):
